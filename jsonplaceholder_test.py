@@ -1,5 +1,6 @@
 import json
 
+import pytest
 import requests
 
 
@@ -28,8 +29,14 @@ def test_resource_404():
 
 
 # проверка добавления новой записи
-def test_resource_post():
-    new_resource = {"title": "foo", "body": "bar", "userId": 1}
+@pytest.mark.parametrize(
+    "new_resource",
+    [
+        ({"title": "foo", "body": "bar", "userId": 1}),
+        ({"title": "foo_test", "body": "bar_test", "userId": 2}),
+    ],
+)
+def test_resource_post(new_resource):
     response = requests.post(
         get_url("posts"), data=json.dumps(new_resource), headers=get_headers()
     )
@@ -37,18 +44,38 @@ def test_resource_post():
 
 
 # проверка изменения записи с заданным id
-def test_resource_patch():
-    fields_update = {"title": "test", "body": "test_patch"}
+@pytest.mark.parametrize(
+    "fields_update, id_resource, result_resource",
+    [
+        (
+            {"title": "test", "body": "test_patch"},
+            100,
+            {
+                "id": 100,
+                "title": "test",
+                "body": "test_patch",
+                "userId": 10,
+            },
+        ),
+        (
+            {"title": "test1", "body": "test_patch1"},
+            50,
+            {
+                "id": 50,
+                "title": "test1",
+                "body": "test_patch1",
+                "userId": 5,
+            },
+        ),
+    ],
+)
+def test_resource_patch(fields_update, id_resource, result_resource):
     response = requests.patch(
-        get_url("posts/100"), data=json.dumps(fields_update), headers=get_headers()
+        get_url(f"posts/{id_resource}"),
+        data=json.dumps(fields_update),
+        headers=get_headers(),
     )
-    assert response.status_code == 200
-    assert response.json() == {
-        "id": 100,
-        "title": "test",
-        "body": "test_patch",
-        "userId": 10,
-    }
+    assert response.json() == result_resource
 
 
 # проверка удаления записи

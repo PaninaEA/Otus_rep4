@@ -1,3 +1,4 @@
+import pytest
 import requests
 
 
@@ -27,19 +28,23 @@ def test_dog_random():
     assert random_breed.status_code == 200
 
 
-# проверка списка подвидов породы Гончая
-def test_dog_sub_breed():
-    list_sub_breed_hount = [
-        "afghan",
-        "basset",
-        "blood",
-        "english",
-        "ibizan",
-        "plott",
-        "walker",
-    ]
-    dog = get_dog("breed/hound/list")
-    assert dog["message"] == list_sub_breed_hount
+# проверка списка подвидов
+@pytest.mark.parametrize(
+    "breed, sub_breed",
+    [
+        (
+            "hound",
+            ["afghan", "basset", "blood", "english", "ibizan", "plott", "walker"],
+        ),
+        (
+            "mastiff",
+            ["bull", "english", "indian", "tibetan"]
+        ),
+    ],
+)
+def test_dog_sub_breed(breed, sub_breed):
+    dog = get_dog(f"breed/{breed}/list")
+    assert dog["message"] == sub_breed
 
 
 # проверка получения рандомной картинки для породы Гончая
